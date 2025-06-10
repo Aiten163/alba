@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  nginx_php:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+      - mysql_php
+
+  php:
+    image: php:8.1-fpm
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      - DB_HOST=mysql_php
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=alba
+
+  mysql_php:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "alba"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "root"
+    volumes:
+      - mysql_data_php:/var/lib/mysql
+    ports:
+      - "3307:3306"  # Отдельный порт для MySQL
+  phpmyadmin_php:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadminMedic
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql_php
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - mysql_php
+volumes:
+  mysql_data_php:
